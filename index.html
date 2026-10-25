@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
 <title>Map Editor — 2D/3D</title>
 <style>
 :root{
@@ -16,36 +19,41 @@
   --radius:12px;--radius-sm:8px;
   --shadow:0 8px 24px rgba(0,0,0,0.35);
   --shadow-lg:0 20px 60px rgba(0,0,0,0.5);
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+  --safe-left:env(safe-area-inset-left, 0px);
+  --safe-right:env(safe-area-inset-right, 0px);
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
-body{display:flex;flex-direction:column;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
+body{display:flex;flex-direction:column;touch-action:manipulation;}
 
-#authScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 25% 15%,rgba(79,140,255,0.12),transparent 45%),radial-gradient(circle at 85% 85%,rgba(139,92,246,0.1),transparent 45%),var(--bg);z-index:1000;padding:20px;}
-.auth-card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border-strong);border-radius:16px;padding:32px;box-shadow:var(--shadow-lg);animation:pop 0.25s ease;}
+#authScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 25% 15%,rgba(79,140,255,0.12),transparent 45%),radial-gradient(circle at 85% 85%,rgba(139,92,246,0.1),transparent 45%),var(--bg);z-index:1000;padding:calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.auth-card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border-strong);border-radius:16px;padding:32px;box-shadow:var(--shadow-lg);animation:pop 0.25s ease;margin:auto;}
 .auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:24px;justify-content:center;}
 .auth-logo-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b5cf6);box-shadow:0 0 16px var(--accent);}
 .auth-logo span{font-weight:700;font-size:20px;letter-spacing:-0.02em;}
 .auth-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--panel-2);padding:4px;border-radius:var(--radius-sm);}
-.auth-tab{flex:1;padding:9px 14px;border:none;background:transparent;color:var(--text-dim);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.15s;}
+.auth-tab{flex:1;padding:11px 14px;border:none;background:transparent;color:var(--text-dim);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.15s;min-height:44px;}
 .auth-tab.active{background:var(--accent);color:#fff;}
 .auth-field{margin-bottom:14px;}
 .auth-field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:500;}
-.auth-field input{width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;transition:all 0.15s;}
+.auth-field input{width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text);font-size:16px;outline:none;transition:all 0.15s;}
 .auth-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
-.auth-submit{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:6px;}
+.auth-submit{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:6px;min-height:48px;}
 .auth-submit:hover{background:var(--accent-hover);}
 .auth-error{background:var(--danger-soft);color:var(--danger);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:14px;display:none;}
 .auth-error.visible{display:block;}
+.auth-note{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.5;text-align:center;}
 
 #appScreen{display:none;width:100%;height:100%;flex-direction:column;}
 #appScreen.visible{display:flex;}
-#toolbar{flex:0 0 auto;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:center;z-index:10;}
+#toolbar{flex:0 0 auto;padding:10px 16px;padding-top:calc(10px + var(--safe-top));background:var(--panel);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:center;z-index:10;}
 .brand{display:flex;align-items:center;gap:10px;padding-right:14px;margin-right:4px;border-right:1px solid var(--border);font-weight:600;font-size:15px;}
 .brand-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b5cf6);box-shadow:0 0 12px var(--accent);}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--panel-2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s ease;white-space:nowrap;position:relative;}
-.btn:hover{background:var(--panel-3);border-color:#4a5364;transform:translateY(-1px);}
-.btn:active{transform:translateY(0);}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--panel-2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s ease;white-space:nowrap;position:relative;min-height:40px;user-select:none;}
+.btn:hover{background:var(--panel-3);border-color:#4a5364;}
+.btn:active{transform:scale(0.97);}
 .btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
 .btn svg{width:16px;height:16px;flex-shrink:0;}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
@@ -66,53 +74,54 @@ body{display:flex;flex-direction:column;}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--text-dim);transition:background 0.2s;flex-shrink:0;}
 .status-dot.ready{background:var(--success);box-shadow:0 0 8px var(--success);}
 .user-chip{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:999px;font-size:13px;}
-.user-chip-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.user-chip-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
 .user-chip-avatar.admin{background:linear-gradient(135deg,#ff5c6c,#ffb84d);color:#fff;}
 .user-chip-avatar.user{background:linear-gradient(135deg,#4f8cff,#3ddc97);color:#fff;}
 .user-chip-role{font-size:11px;color:var(--text-dim);}
-.logout-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;border-radius:6px;display:flex;transition:all 0.15s;margin-left:4px;}
+.logout-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:6px;border-radius:6px;display:flex;transition:all 0.15s;margin-left:4px;min-width:32px;min-height:32px;align-items:center;justify-content:center;}
 .logout-btn:hover{background:var(--danger-soft);color:var(--danger);}
 .logout-btn svg{width:14px;height:14px;}
 
 .view-toggle{display:inline-flex;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:3px;gap:2px;}
-.view-toggle button{padding:6px 12px;background:none;border:none;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.view-toggle button{padding:6px 12px;background:none;border:none;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;gap:6px;min-height:34px;}
 .view-toggle button:hover{color:var(--text);}
 .view-toggle button.active{background:var(--accent);color:#fff;}
 .view-toggle svg{width:14px;height:14px;}
 
-.mode-banner{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 16px;border-radius:999px;font-size:12px;display:none;align-items:center;gap:8px;z-index:5;box-shadow:var(--shadow);}
+.mode-banner{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 16px;border-radius:999px;font-size:12px;display:none;align-items:center;gap:8px;z-index:5;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center;}
 .mode-banner.visible{display:flex;}
 
 #main{flex:1 1 auto;min-height:0;display:flex;position:relative;}
 #toolsPanel{flex:0 0 0;width:0;background:var(--panel);border-right:1px solid var(--border);overflow:hidden;transition:width 0.2s ease,flex-basis 0.2s ease;}
 #toolsPanel.open{flex:0 0 290px;width:290px;}
-.tools-inner{width:290px;padding:14px;height:100%;overflow-y:auto;}
+.tools-inner{width:290px;padding:14px;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .tools-inner::-webkit-scrollbar{width:6px;}
 .tools-inner::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
 .tool-group-title{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);font-weight:600;margin:16px 0 8px;}
 .tool-group-title:first-child{margin-top:0;}
 .tool-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
-.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 6px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:10.5px;cursor:pointer;transition:all 0.15s;text-align:center;min-height:60px;line-height:1.2;}
+.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 6px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:10.5px;cursor:pointer;transition:all 0.15s;text-align:center;min-height:60px;line-height:1.2;user-select:none;}
 .tool:hover{background:var(--panel-3);border-color:#4a5364;}
+.tool:active{transform:scale(0.97);}
 .tool.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .tool svg{width:20px;height:20px;flex-shrink:0;}
 .tool-color-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
-.color-swatch{width:24px;height:24px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:transform 0.1s;}
+.color-swatch{width:28px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:transform 0.1s;}
 .color-swatch:hover{transform:scale(1.1);}
 .color-swatch.active{border-color:#fff;}
 
-#canvasWrapper{flex:1 1 auto;position:relative;min-height:0;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(79,140,255,0.06),transparent 45%),radial-gradient(circle at 85% 85%,rgba(139,92,246,0.05),transparent 45%),var(--bg);}
-#mapCanvas{display:block;width:100%;height:100%;position:relative;z-index:2;}
-#threeCanvas{position:absolute;inset:0;display:none;width:100%;height:100%;cursor:grab;z-index:1;}
+#canvasWrapper{flex:1 1 auto;position:relative;min-height:0;overflow:hidden;background:radial-gradient(circle at 25% 15%,rgba(79,140,255,0.06),transparent 45%),radial-gradient(circle at 85% 85%,rgba(139,92,246,0.05),transparent 45%),var(--bg);touch-action:none;}
+#mapCanvas{display:block;width:100%;height:100%;position:relative;z-index:2;touch-action:none;}
+#threeCanvas{position:absolute;inset:0;display:none;width:100%;height:100%;cursor:grab;z-index:1;touch-action:none;}
 #threeCanvas.active{display:block;}
 #threeCanvas:active{cursor:grabbing;}
 #canvasWrapper.mode-3d #mapCanvas{visibility:hidden;}
 #canvasWrapper.mode-3d .draw-info,#canvasWrapper.mode-3d .route-info,#canvasWrapper.mode-3d .zoom-hint{display:none !important;}
 
-.three-hint{position:absolute;bottom:16px;right:16px;background:rgba(15,17,21,0.85);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 14px;border-radius:10px;font-size:11px;line-height:1.6;z-index:6;display:none;pointer-events:none;}
+.three-hint{position:absolute;bottom:calc(16px + var(--safe-bottom));right:calc(16px + var(--safe-right));background:rgba(15,17,21,0.85);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 14px;border-radius:10px;font-size:11px;line-height:1.6;z-index:6;display:none;pointer-events:none;}
 #canvasWrapper.mode-3d .three-hint{display:block;}
 .three-hint b{color:var(--text);}
-.zoom-hint{position:absolute;bottom:16px;right:16px;background:rgba(15,17,21,0.85);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 14px;border-radius:10px;font-size:11px;line-height:1.6;z-index:6;pointer-events:none;}
+.zoom-hint{position:absolute;bottom:calc(16px + var(--safe-bottom));right:calc(16px + var(--safe-right));background:rgba(15,17,21,0.85);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text-dim);padding:8px 14px;border-radius:10px;font-size:11px;line-height:1.6;z-index:6;pointer-events:none;}
 .zoom-hint b{color:var(--text);}
 #canvasWrapper.mode-3d .zoom-hint{display:none;}
 
@@ -135,30 +144,30 @@ body{display:flex;flex-direction:column;}
 .placeholder h2{font-size:18px;font-weight:600;color:var(--text);}
 .placeholder p{font-size:14px;max-width:400px;line-height:1.5;}
 
-.hint{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--accent);color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:500;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all 0.2s ease;white-space:nowrap;z-index:5;}
+.hint{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--accent);color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:500;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all 0.2s ease;white-space:nowrap;z-index:5;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;}
 .hint.visible{opacity:1;transform:translateX(-50%) translateY(0);}
 .hint.route{background:var(--route);color:#1a1d24;}
 .hint.obstacle{background:var(--obstacle);color:#fff;}
 .hint.edit{background:var(--success);color:#1a1d24;}
 
-.draw-info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(15,17,21,0.9);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text);padding:8px 14px;border-radius:999px;font-size:12px;display:none;align-items:center;gap:8px;z-index:5;}
+.draw-info{position:absolute;bottom:calc(16px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:rgba(15,17,21,0.9);backdrop-filter:blur(8px);border:1px solid var(--border-strong);color:var(--text);padding:8px 14px;border-radius:999px;font-size:12px;display:none;align-items:center;gap:8px;z-index:5;max-width:calc(100% - 32px);}
 .draw-info.visible{display:flex;}
 .draw-info kbd{background:var(--panel-3);border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;font-size:11px;font-family:inherit;}
-.route-info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--panel);border:1px solid var(--route);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13px;display:none;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:8;opacity:0;transition:all 0.25s ease;}
+.route-info{position:absolute;bottom:calc(16px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--panel);border:1px solid var(--route);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13px;display:none;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:8;opacity:0;transition:all 0.25s ease;max-width:calc(100% - 32px);}
 .route-info.visible{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
 .route-info-badge{background:var(--route);color:#1a1d24;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
-.route-info-clear{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;display:flex;border-radius:6px;}
+.route-info-clear{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:6px;display:flex;border-radius:6px;min-width:28px;min-height:28px;align-items:center;justify-content:center;}
 .route-info-clear svg{width:14px;height:14px;}
 
-.panel{position:absolute;top:16px;right:16px;width:320px;max-height:calc(100% - 32px);background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;transform:translateX(calc(100% + 24px));transition:transform 0.25s ease;z-index:20;}
+.panel{position:absolute;top:16px;right:calc(16px + var(--safe-right));width:320px;max-height:calc(100% - 32px);background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;transform:translateX(calc(100% + 24px));transition:transform 0.25s ease;z-index:20;}
 .panel.open{transform:translateX(0);}
 .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;flex-shrink:0;}
 .panel-header .count{background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;}
-.panel-body{overflow-y:auto;padding:8px;}
+.panel-body{overflow-y:auto;padding:8px;-webkit-overflow-scrolling:touch;}
 .panel-body::-webkit-scrollbar{width:6px;}
 .panel-body::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
 
-.point-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);transition:background 0.15s;cursor:pointer;}
+.point-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);transition:background 0.15s;cursor:pointer;min-height:48px;}
 .point-item:hover{background:var(--panel-2);}
 .point-item.route-start{background:rgba(61,220,151,0.12);}
 .point-item.route-end{background:rgba(255,92,108,0.12);}
@@ -169,13 +178,14 @@ body{display:flex;flex-direction:column;}
 .point-sub{font-size:11px;color:var(--text-dim);}
 .point-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s;}
 .point-item:hover .point-actions{opacity:1;}
-.icon-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:5px;border-radius:6px;display:flex;transition:all 0.15s;flex-shrink:0;font-size:14px;}
+@media (hover:none){.point-actions{opacity:1;}}
+.icon-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:5px;border-radius:6px;display:flex;transition:all 0.15s;flex-shrink:0;font-size:14px;min-width:36px;min-height:36px;align-items:center;justify-content:center;}
 .icon-btn:hover{background:var(--danger-soft);color:var(--danger);}
 .icon-btn.accent:hover{background:var(--accent-soft);color:var(--accent);}
 .icon-btn.route:hover{background:rgba(255,209,102,0.15);color:var(--route);}
 .icon-btn.edit:hover{background:rgba(61,220,151,0.15);color:var(--success);}
 
-.map-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.15s;border:1px solid transparent;}
+.map-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;transition:background 0.15s;border:1px solid transparent;min-height:68px;}
 .map-item:hover{background:var(--panel-2);}
 .map-item.active{background:var(--accent-soft);border-color:rgba(79,140,255,0.35);}
 .map-thumb{width:52px;height:52px;border-radius:6px;background:#0b0d11;object-fit:cover;flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:10px;overflow:hidden;}
@@ -190,24 +200,25 @@ body{display:flex;flex-direction:column;}
 .map-meta{font-size:11px;color:var(--text-dim);}
 .map-actions{display:flex;gap:2px;opacity:0;transition:opacity 0.15s;}
 .map-item:hover .map-actions,.map-item.active .map-actions{opacity:1;}
+@media (hover:none){.map-actions{opacity:1;}}
 .map-actions .icon-btn:hover{background:rgba(255,255,255,0.08);color:var(--text);}
 .map-actions .icon-btn.danger:hover{background:var(--danger-soft);color:var(--danger);}
 .empty-state{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-dim);line-height:1.5;}
 
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;padding-top:calc(20px + var(--safe-top));padding-bottom:calc(20px + var(--safe-bottom));overflow-y:auto;}
 .modal-backdrop.open{display:flex;}
-.modal{background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;box-shadow:var(--shadow);animation:pop 0.18s ease;max-height:calc(100vh - 40px);overflow-y:auto;}
+.modal{background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;box-shadow:var(--shadow);animation:pop 0.18s ease;max-height:calc(100vh - 40px);overflow-y:auto;margin:auto;}
 @keyframes pop{from{transform:scale(0.96);opacity:0;}to{transform:scale(1);opacity:1;}}
 .modal h3{font-size:17px;font-weight:600;margin-bottom:6px;}
 .modal p{font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.5;}
-.modal input[type="text"],.modal input[type="number"],.modal textarea,.modal select{width:100%;padding:11px 14px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;margin-bottom:14px;font-family:inherit;resize:vertical;}
+.modal input[type="text"],.modal input[type="number"],.modal textarea,.modal select{width:100%;padding:11px 14px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text);font-size:16px;outline:none;margin-bottom:14px;font-family:inherit;resize:vertical;}
 .modal input[type="text"]:focus,.modal input[type="number"]:focus,.modal textarea:focus,.modal select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
 .modal label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:500;}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap;}
 .modal-actions .btn{padding:9px 18px;}
 
-.editor-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;}
-.editor-tab{padding:9px 14px;background:none;border:none;color:var(--text-dim);font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.editor-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.editor-tab{padding:9px 14px;background:none;border:none;color:var(--text-dim);font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
 .editor-tab:hover{color:var(--text);}
 .editor-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .editor-tab-content{display:none;}
@@ -222,17 +233,17 @@ body{display:flex;flex-direction:column;}
 .media-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
 .media-tile{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:#0b0d11;border:1px solid var(--border);}
 .media-tile img{width:100%;height:100%;object-fit:cover;}
-.media-tile .remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;}
-.media-tile:hover .remove{opacity:1;}
+.media-tile .remove{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:1;font-size:16px;line-height:1;}
+@media (hover:hover){.media-tile .remove{opacity:0;}.media-tile:hover .remove{opacity:1;}}
 
-.point-popover{position:fixed;z-index:60;width:340px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;opacity:0;transform:scale(0.96);pointer-events:none;transition:opacity 0.18s,transform 0.18s;}
+.point-popover{position:fixed;z-index:60;width:340px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;opacity:0;transform:scale(0.96);pointer-events:none;transition:opacity 0.18s,transform 0.18s;max-height:calc(100vh - 24px);display:flex;flex-direction:column;}
 .point-popover.open{opacity:1;transform:scale(1);pointer-events:auto;}
-.popover-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.popover-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0;padding-right:44px;}
 .popover-dot{width:12px;height:12px;border-radius:50%;background:var(--danger);flex-shrink:0;margin-top:4px;}
 .popover-title-wrap{flex:1;min-width:0;}
 .popover-title{font-size:15px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .popover-subtitle{font-size:11px;color:var(--text-dim);}
-.popover-body{padding:14px 16px;max-height:400px;overflow-y:auto;}
+.popover-body{padding:14px 16px;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
 .popover-desc{font-size:13px;line-height:1.55;color:var(--text);margin-bottom:14px;white-space:pre-wrap;}
 .popover-desc.empty{color:var(--text-dim);font-style:italic;}
 .popover-section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);font-weight:600;margin-bottom:8px;}
@@ -243,35 +254,36 @@ body{display:flex;flex-direction:column;}
 .popover-photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border);}
 .popover-route-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
 .popover-route-actions .btn{flex:1;justify-content:center;padding:8px 10px;font-size:12px;}
-.popover-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--panel-2);}
+.popover-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--panel-2);flex-shrink:0;flex-wrap:wrap;}
 .popover-footer .btn{padding:7px 12px;font-size:12px;}
-.popover-close{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;}
+.popover-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;}
+.popover-close svg{width:16px;height:16px;}
 
-#elementProps{position:absolute;right:16px;bottom:16px;width:320px;background:var(--panel);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:14px;display:none;z-index:22;max-height:calc(100% - 32px);overflow-y:auto;}
+#elementProps{position:absolute;right:calc(16px + var(--safe-right));bottom:calc(16px + var(--safe-bottom));width:320px;background:var(--panel);border:1px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:14px;display:none;z-index:22;max-height:calc(100% - 32px);overflow-y:auto;}
 #elementProps.open{display:block;}
 #elementProps h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent);}
 #elementProps .prop-row{display:flex;gap:8px;margin-bottom:8px;}
 #elementProps .prop-row > div{flex:1;}
 #elementProps label{font-size:11px;color:var(--text-dim);margin-bottom:3px;display:block;}
-#elementProps input{width:100%;padding:6px 8px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:6px;color:var(--text);font-size:12px;outline:none;}
+#elementProps input{width:100%;padding:8px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:6px;color:var(--text);font-size:16px;outline:none;}
 #elementProps input:focus{border-color:var(--accent);}
 #elementProps .prop-actions{display:flex;gap:6px;margin-top:10px;}
-#elementProps .prop-actions .btn{flex:1;justify-content:center;padding:6px 8px;font-size:11px;}
+#elementProps .prop-actions .btn{flex:1;justify-content:center;padding:8px;font-size:12px;}
 #elementProps .prop-hint{font-size:10.5px;color:var(--text-dim);margin-top:6px;line-height:1.4;}
 
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
 .lightbox.open{display:flex;}
 .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;}
-.lightbox-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.lightbox-close{position:absolute;top:calc(20px + var(--safe-top));right:calc(20px + var(--safe-right));width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
 
 .pano-viewer{position:fixed;inset:0;background:#000;z-index:200;display:none;}
 .pano-viewer.open{display:block;}
-.pano-viewer canvas{width:100%;height:100%;display:block;cursor:grab;}
-.pano-viewer-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
-.pano-viewer-hint{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:8px 16px;border-radius:999px;font-size:12px;z-index:10;}
+.pano-viewer canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none;}
+.pano-viewer-close{position:absolute;top:calc(20px + var(--safe-top));right:calc(20px + var(--safe-right));width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.pano-viewer-hint{position:absolute;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:8px 16px;border-radius:999px;font-size:12px;z-index:10;white-space:nowrap;}
 
 .furniture-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
-.furniture-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-size:10px;text-align:center;color:var(--text);}
+.furniture-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-size:10px;text-align:center;color:var(--text);min-height:70px;}
 .furniture-item:hover{background:var(--panel-3);border-color:var(--accent);}
 .furniture-item.selected{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .furniture-item svg{width:28px;height:28px;}
@@ -280,42 +292,187 @@ body{display:flex;flex-direction:column;}
 .furniture-settings-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .furniture-settings-row:last-child{margin-bottom:0;}
 .furniture-settings-row label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px;}
-.furniture-settings-row .swatch{width:26px;height:26px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:transform 0.1s;}
+.furniture-settings-row .swatch{width:30px;height:30px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:transform 0.1s;}
 .furniture-settings-row .swatch:hover{transform:scale(1.1);}
 .furniture-settings-row .swatch.active{border-color:#fff;}
-.shape-btn{padding:6px 10px;background:var(--panel);border:1px solid var(--border-strong);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;transition:all 0.15s;}
+.shape-btn{padding:8px 12px;background:var(--panel);border:1px solid var(--border-strong);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;transition:all 0.15s;min-height:36px;}
 .shape-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-.obstacle-toolbar,.edit-toolbar{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--panel);border-radius:var(--radius);padding:8px;display:flex;gap:6px;box-shadow:var(--shadow);z-index:15;transition:transform 0.25s ease;flex-wrap:wrap;max-width:90vw;}
+.obstacle-toolbar,.edit-toolbar{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--panel);border-radius:var(--radius);padding:8px;display:flex;gap:6px;box-shadow:var(--shadow);z-index:15;transition:transform 0.25s ease;flex-wrap:wrap;max-width:calc(100% - 32px);justify-content:center;}
 .obstacle-toolbar{border:1px solid var(--obstacle);}
 .edit-toolbar{border:1px solid var(--success);}
 .obstacle-toolbar.visible,.edit-toolbar.visible{transform:translateX(-50%) translateY(0);}
-.obstacle-toolbar .btn,.edit-toolbar .btn{padding:7px 12px;font-size:12px;}
+.obstacle-toolbar .btn,.edit-toolbar .btn{padding:7px 12px;font-size:12px;min-height:36px;}
 .obstacle-toolbar .btn.active{background:var(--obstacle);border-color:var(--obstacle);color:#fff;}
 .edit-toolbar .btn.active{background:var(--success);border-color:var(--success);color:#1a1d24;}
 
-.three-toolbar{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--panel);border:1px solid var(--success);border-radius:var(--radius);padding:8px;display:flex;gap:6px;box-shadow:var(--shadow);z-index:16;transition:transform 0.25s ease;flex-wrap:wrap;max-width:90vw;}
+.three-toolbar{position:absolute;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--panel);border:1px solid var(--success);border-radius:var(--radius);padding:8px;display:flex;gap:6px;box-shadow:var(--shadow);z-index:16;transition:transform 0.25s ease;flex-wrap:wrap;max-width:calc(100% - 32px);justify-content:center;}
 .three-toolbar.visible{transform:translateX(-50%) translateY(0);}
-.three-toolbar .btn{padding:7px 12px;font-size:12px;}
+.three-toolbar .btn{padding:7px 12px;font-size:12px;min-height:36px;}
 .three-toolbar .btn.active{background:var(--success);border-color:var(--success);color:#1a1d24;}
 
-body.role-user .admin-only{display:none !important;}
-body.role-user #toolsPanel{display:none !important;}
-body.role-user #addPointBtn{display:none !important;}
+/* ==== Скрытие админ-функций для гостя ==== */
+body.role-user [data-role="admin"]{display:none !important;}
 
-@media (max-width:720px){
-    #toolbar{padding:8px 10px;gap:6px;}
+/* ==== Адаптивность ==== */
+@media (max-width: 1024px){
+    #toolbar{padding:8px 12px;gap:8px;}
+    .brand span{font-size:14px;}
+    .btn{padding:7px 11px;font-size:12px;}
+    .status{max-width:160px;}
+    .panel{width:300px;}
+}
+
+@media (max-width: 820px){
+    #toolbar{
+        padding:8px 10px;
+        padding-top:calc(8px + var(--safe-top));
+        gap:6px;
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+    }
+    #toolbar::-webkit-scrollbar{display:none;}
+    .brand{border-right:none;padding-right:0;margin-right:0;}
     .brand span{display:none;}
-    .btn{padding:7px 10px;font-size:12px;}
+    .brand-dot{width:12px;height:12px;}
+    .btn{padding:7px 10px;font-size:12px;min-height:38px;gap:6px;}
     .btn span.label{display:none;}
+    .btn .badge{padding:1px 6px;font-size:10px;}
+    .divider-v{display:none;}
     .status{display:none;}
+    .user-chip{padding:4px 8px;gap:6px;}
     .user-chip .user-chip-role{display:none;}
-    .panel{width:calc(100% - 32px);max-width:320px;}
-    #toolsPanel.open{flex-basis:250px;width:250px;}
-    .tools-inner{width:250px;padding:10px;}
-    .point-popover{width:calc(100vw - 32px);}
-    .view-toggle button{padding:6px 8px;font-size:11px;}
-    #elementProps{width:calc(100% - 32px);}
+    .user-chip > div:not(.user-chip-avatar){font-size:12px;}
+    .view-toggle button{padding:6px 9px;font-size:11px;min-height:34px;}
+    .view-toggle svg{width:12px;height:12px;}
+
+    #main{flex-direction:column;}
+
+    #toolsPanel{
+        position:absolute;
+        top:0;left:0;bottom:0;
+        z-index:18;
+        width:0;
+        max-width:85vw;
+        border-right:1px solid var(--border-strong);
+        box-shadow:var(--shadow-lg);
+    }
+    #toolsPanel.open{flex:0 0 280px;width:280px;}
+    .tools-inner{width:280px;padding:12px;padding-bottom:calc(12px + var(--safe-bottom));}
+
+    .panel{
+        position:absolute;
+        top:8px;
+        right:8px;
+        left:auto;
+        width:calc(100% - 16px);
+        max-width:340px;
+        max-height:calc(100% - 16px);
+        border-radius:14px;
+    }
+    .panel.open{transform:translateX(0);}
+
+    .point-popover{width:calc(100vw - 24px);max-width:400px;}
+    .popover-body{max-height:45vh;}
+
+    #elementProps{
+        right:8px;
+        left:8px;
+        width:auto;
+        bottom:calc(8px + var(--safe-bottom));
+        max-height:60%;
+    }
+    #elementProps .prop-row{flex-wrap:wrap;}
+
+    .hint{font-size:12px;padding:7px 12px;top:10px;}
+    .draw-info{font-size:11px;padding:6px 10px;gap:6px;}
+    .route-info{font-size:12px;padding:8px 12px;gap:8px;}
+
+    .zoom-hint,.three-hint{display:none !important;}
+
+    .obstacle-toolbar,.edit-toolbar,.three-toolbar{
+        top:8px;
+        padding:6px;
+        gap:4px;
+        max-width:calc(100% - 16px);
+        border-radius:10px;
+    }
+    .obstacle-toolbar .btn,.edit-toolbar .btn,.three-toolbar .btn{
+        padding:6px 9px;
+        font-size:11px;
+        min-height:34px;
+    }
+    .obstacle-toolbar .btn span,.edit-toolbar .btn span,.three-toolbar .btn span{
+        display:none;
+    }
+
+    .modal-backdrop{padding:12px;padding-top:calc(12px + var(--safe-top));padding-bottom:calc(12px + var(--safe-bottom));}
+    .modal{padding:18px;border-radius:14px;}
+    .modal-actions .btn{flex:1;justify-content:center;}
+
+    .furniture-grid{grid-template-columns:repeat(4,1fr);gap:6px;}
+    .furniture-item{min-height:64px;font-size:9px;padding:8px 2px;}
+    .furniture-item svg{width:24px;height:24px;}
+
+    .mode-banner{font-size:11px;padding:6px 12px;top:8px;}
+}
+
+@media (max-width: 480px){
+    .auth-card{padding:22px 18px;}
+    .auth-logo span{font-size:18px;}
+    .auth-field input{padding:11px 12px;}
+
+    .btn{padding:6px 9px;font-size:11.5px;min-height:36px;}
+    .btn svg{width:14px;height:14px;}
+    .view-toggle button{padding:5px 7px;font-size:10.5px;min-height:32px;}
+    .view-toggle svg{width:11px;height:11px;}
+
+    .hint{font-size:11px;padding:6px 10px;}
+    .draw-info{font-size:10.5px;}
+
+    .panel{max-width:calc(100% - 12px);}
+    .panel-header{padding:12px;font-size:13px;}
+    .point-item{padding:8px 10px;gap:8px;}
+
+    .modal{padding:16px;}
+    .modal h3{font-size:15px;}
+    .modal-actions{gap:8px;}
+
+    .media-grid{grid-template-columns:repeat(3,1fr);gap:6px;}
+
+    .furniture-grid{grid-template-columns:repeat(3,1fr);}
+    .furniture-settings-row .swatch{width:28px;height:28px;}
+
+    .obstacle-toolbar .btn,.edit-toolbar .btn,.three-toolbar .btn{padding:5px 7px;min-height:32px;}
+}
+
+@media (max-width: 360px){
+    .btn{padding:5px 8px;font-size:11px;min-height:34px;}
+    .btn svg{width:13px;height:13px;}
+    .view-toggle button{padding:4px 6px;min-height:30px;}
+    .furniture-grid{grid-template-columns:repeat(3,1fr);}
+    .auth-tab{padding:8px 10px;font-size:12px;}
+}
+
+@media (max-height: 500px) and (orientation: landscape){
+    #toolbar{padding:4px 8px;padding-top:calc(4px + var(--safe-top));gap:4px;}
+    .btn{padding:5px 8px;min-height:32px;}
+    .brand-dot{width:10px;height:10px;}
+    .view-toggle button{min-height:30px;padding:4px 8px;}
+    .obstacle-toolbar,.edit-toolbar,.three-toolbar{top:4px;padding:4px;}
+    .obstacle-toolbar .btn,.edit-toolbar .btn,.three-toolbar .btn{min-height:30px;padding:4px 8px;}
+    .hint,.draw-info,.route-info,.mode-banner{display:none !important;}
+}
+
+@media (hover: none){
+    .btn:hover{background:var(--panel-2);border-color:var(--border-strong);}
+    .btn-primary:hover{background:var(--accent);border-color:var(--accent);}
+    .tool:hover{background:var(--panel-2);border-color:var(--border);}
+    .color-swatch:hover{transform:none;}
+    .panel{transition:none;}
 }
 </style>
 </head>
@@ -332,19 +489,14 @@ body.role-user #addPointBtn{display:none !important;}
             <div class="auth-field"><label>Логин</label><input type="text" id="loginName" autocomplete="username" placeholder="admin или user"></div>
             <div class="auth-field"><label>Пароль</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••"></div>
             <button class="auth-submit" id="loginBtn">Войти</button>
+            <div class="auth-note">Демо-аккаунты: <b>admin / admin</b> и <b>user / user</b></div>
         </div>
         <div class="auth-form" data-auth-form="register" style="display:none;">
             <div class="auth-field"><label>Логин</label><input type="text" id="regName" autocomplete="username" placeholder="Минимум 3 символа"></div>
             <div class="auth-field"><label>Пароль</label><input type="password" id="regPass" autocomplete="new-password" placeholder="Минимум 4 символа"></div>
             <div class="auth-field"><label>Повторите пароль</label><input type="password" id="regPass2" autocomplete="new-password" placeholder="••••••"></div>
-            <div class="auth-field">
-                <label>Роль</label>
-                <select id="regRole" style="width:100%;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border-strong);border-radius:8px;color:var(--text);font-size:14px;outline:none;">
-                    <option value="user">Пользователь</option>
-                    <option value="admin">Администратор</option>
-                </select>
-            </div>
             <button class="auth-submit" id="registerBtn">Создать аккаунт</button>
+            <div class="auth-note">Новые аккаунты создаются с ролью «Пользователь».<br>Роль «Администратор» назначается отдельно.</div>
         </div>
     </div>
 </div>
@@ -352,16 +504,16 @@ body.role-user #addPointBtn{display:none !important;}
 <div id="appScreen">
     <div id="toolbar">
         <div class="brand"><div class="brand-dot"></div><span>Map Editor</span></div>
-        <label class="btn file-btn admin-only" title="Загрузить растровую карту">
+        <label class="btn file-btn" data-role="admin" title="Загрузить растровую карту">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span class="label">Загрузить растровую</span>
             <input type="file" id="imageLoader" accept="image/*">
         </label>
-        <button id="newSchemaBtn" class="btn admin-only" title="Создать карту с нуля (чистый холст)">
+        <button id="newSchemaBtn" class="btn" data-role="admin" title="Создать карту с нуля (чистый холст)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
             <span class="label">Создать карту</span>
         </button>
-        <div class="divider-v admin-only"></div>
+        <div class="divider-v" data-role="admin"></div>
         <div class="view-toggle" title="2D / 3D">
             <button id="view2DBtn" class="active" data-view="2d">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>2D
@@ -374,11 +526,11 @@ body.role-user #addPointBtn{display:none !important;}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             <span class="label">Карты</span><span class="badge" id="mapsCountBadge">0</span>
         </button>
-        <button id="editBtn" class="btn btn-edit admin-only" disabled>
+        <button id="editBtn" class="btn btn-edit" data-role="admin" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             <span class="label" id="editBtnLabel">Редактировать</span>
         </button>
-        <button id="obstaclesBtn" class="btn btn-obstacle admin-only" disabled>
+        <button id="obstaclesBtn" class="btn btn-obstacle" data-role="admin" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
             <span class="label">Стены/объекты</span><span class="badge" id="obstaclesCountBadge">0</span>
         </button>
@@ -386,7 +538,7 @@ body.role-user #addPointBtn{display:none !important;}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
             <span class="label" id="routeBtnLabel">Маршрут</span>
         </button>
-        <button id="addPointBtn" class="btn btn-primary admin-only" disabled>
+        <button id="addPointBtn" class="btn btn-primary" data-role="admin" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <span class="label" id="addPointLabel">Добавить точку</span>
         </button>
@@ -406,7 +558,7 @@ body.role-user #addPointBtn{display:none !important;}
     </div>
 
     <div id="main">
-        <div id="toolsPanel">
+        <div id="toolsPanel" data-role="admin">
             <div class="tools-inner">
                 <div class="tool-group-title">Инструменты</div>
                 <div class="tool-grid">
@@ -489,7 +641,7 @@ body.role-user #addPointBtn{display:none !important;}
             <div class="zoom-hint"><b>Колесо</b> — зум · <b>СКМ</b> / <b>Пробел+ЛКМ</b> — панорама</div>
             <div class="three-hint"><b>ЛКМ</b> — вращать · <b>Колесо</b> — зум · <b>ПКМ</b> — панорама · <b>Shift+ЛКМ</b> — рисовать</div>
 
-            <div class="obstacle-toolbar" id="obstacleToolbar">
+            <div class="obstacle-toolbar" id="obstacleToolbar" data-role="admin">
                 <button class="btn active" data-obstacle-tool="rect"><span>Прямоугольник</span></button>
                 <button class="btn" data-obstacle-tool="line"><span>Стена</span></button>
                 <button class="btn" data-obstacle-tool="erase"><span>Стереть</span></button>
@@ -497,7 +649,7 @@ body.role-user #addPointBtn{display:none !important;}
                 <button class="btn btn-primary" id="obstacleDone">Готово</button>
             </div>
 
-            <div class="edit-toolbar" id="editToolbar">
+            <div class="edit-toolbar" id="editToolbar" data-role="admin">
                 <button class="btn active" data-edit-tool="floor"><span>Пол</span></button>
                 <button class="btn" data-edit-tool="wall"><span>Стена</span></button>
                 <button class="btn" data-edit-tool="door"><span>Дверь</span></button>
@@ -513,7 +665,7 @@ body.role-user #addPointBtn{display:none !important;}
                 <button class="btn btn-primary" id="editDone">Готово</button>
             </div>
 
-            <div class="three-toolbar" id="threeToolbar">
+            <div class="three-toolbar" id="threeToolbar" data-role="admin">
                 <button class="btn active" data-three-tool="select"><span>Выбор</span></button>
                 <button class="btn" data-three-tool="floor"><span>Пол</span></button>
                 <button class="btn" data-three-tool="wall"><span>Стена</span></button>
@@ -539,25 +691,25 @@ body.role-user #addPointBtn{display:none !important;}
                     </div>
                 </div>
                 <div class="popover-body" id="popoverBody"></div>
-                <div class="popover-footer">
-                    <button class="btn admin-only" id="popoverEditBtn">Редактировать</button>
-                    <button class="btn admin-only" id="popoverDeleteBtn">Удалить</button>
+                <div class="popover-footer" data-role="admin">
+                    <button class="btn" id="popoverEditBtn">Редактировать</button>
+                    <button class="btn" id="popoverDeleteBtn">Удалить</button>
                 </div>
             </div>
 
-            <div id="elementProps">
+            <div id="elementProps" data-role="admin">
                 <h4>Свойства: <span id="propsTitle">—</span></h4>
                 <div class="prop-row">
-                    <div><label>X (px)</label><input type="number" id="propX" step="10"></div>
-                    <div><label>Y (px)</label><input type="number" id="propY" step="10"></div>
+                    <div><label>X (px)</label><input type="number" id="propX" step="10" inputmode="numeric"></div>
+                    <div><label>Y (px)</label><input type="number" id="propY" step="10" inputmode="numeric"></div>
                 </div>
                 <div class="prop-row">
-                    <div><label>Ширина (px)</label><input type="number" id="propW" step="10"></div>
-                    <div><label>Высота (px)</label><input type="number" id="propH" step="10"></div>
+                    <div><label>Ширина (px)</label><input type="number" id="propW" step="10" inputmode="numeric"></div>
+                    <div><label>Высота (px)</label><input type="number" id="propH" step="10" inputmode="numeric"></div>
                 </div>
                 <div class="prop-row">
-                    <div><label>Глубина 3D (px)</label><input type="number" id="propD" step="10"></div>
-                    <div><label>Поворот (°)</label><input type="number" id="propRot" step="15"></div>
+                    <div><label>Глубина 3D (px)</label><input type="number" id="propD" step="10" inputmode="numeric"></div>
+                    <div><label>Поворот (°)</label><input type="number" id="propRot" step="15" inputmode="numeric"></div>
                 </div>
                 <div class="prop-hint" id="propHint">Для линейных объектов: X, Y — начало, Ширина — длина, Высота — толщина/ширина, Поворот — угол.</div>
                 <div class="prop-actions">
@@ -578,7 +730,7 @@ body.role-user #addPointBtn{display:none !important;}
     </div>
 </div>
 
-<div class="modal-backdrop" id="pointEditorModal">
+<div class="modal-backdrop" id="pointEditorModal" data-role="admin">
     <div class="modal" style="max-width:520px;">
         <h3 id="pointEditorTitle">Новая точка</h3>
         <p>Заполните информацию о точке.</p>
@@ -616,7 +768,7 @@ body.role-user #addPointBtn{display:none !important;}
     </div>
 </div>
 
-<div class="modal-backdrop" id="furniturePickerModal">
+<div class="modal-backdrop" id="furniturePickerModal" data-role="admin">
     <div class="modal" style="max-width:620px;">
         <h3>Выберите мебель</h3>
         <p>Выберите предмет, затем настройте цвет и форму. Настройки сохраняются в БД.</p>
@@ -656,7 +808,7 @@ body.role-user #addPointBtn{display:none !important;}
     </div>
 </div>
 
-<div class="modal-backdrop" id="textEditorModal">
+<div class="modal-backdrop" id="textEditorModal" data-role="admin">
     <div class="modal">
         <h3>Текст</h3>
         <label>Содержимое</label>
@@ -683,7 +835,7 @@ body.role-user #addPointBtn{display:none !important;}
     </div>
 </div>
 
-<div class="modal-backdrop" id="mapNameModal">
+<div class="modal-backdrop" id="mapNameModal" data-role="admin">
     <div class="modal">
         <h3 id="mapNameTitle">Название карты</h3>
         <p id="mapNameText">Введите название.</p>
@@ -714,7 +866,7 @@ body.role-user #addPointBtn{display:none !important;}
 <div class="pano-viewer" id="panoViewer">
     <button class="pano-viewer-close" id="panoViewerClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <canvas id="panoCanvas"></canvas>
-    <div class="pano-viewer-hint">Тяните мышью, чтобы осмотреться</div>
+    <div class="pano-viewer-hint">Тяните мышью / пальцем, чтобы осмотреться</div>
 </div>
 
 <script>
@@ -815,22 +967,26 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     const login = document.getElementById('regName').value.trim();
     const pass = document.getElementById('regPass').value;
     const pass2 = document.getElementById('regPass2').value;
-    const role = document.getElementById('regRole').value;
     if (login.length < 3) { showAuthError('Логин минимум 3 символа'); return; }
     if (pass.length < 4) { showAuthError('Пароль минимум 4 символа'); return; }
     if (pass !== pass2) { showAuthError('Пароли не совпадают'); return; }
     const existing = await dbGet(login, USERS_STORE);
     if (existing) { showAuthError('Пользователь уже существует'); return; }
     const hashed = await hashPassword(pass);
+    /* ВАЖНО: роль НЕ выбирается пользователем — всегда 'user' */
+    const role = 'user';
     await dbPut({ login, password: hashed, role }, USERS_STORE);
     loginSuccess({ login, role });
 });
+function applyRoleVisibility(role) {
+    document.body.classList.toggle('role-user', role !== 'admin');
+    document.body.classList.toggle('role-admin', role === 'admin');
+}
 function loginSuccess(user) {
     currentUser = user;
     authScreen.style.display = 'none';
     appScreen.classList.add('visible');
-    document.body.classList.toggle('role-user', user.role !== 'admin');
-    document.body.classList.toggle('role-admin', user.role === 'admin');
+    applyRoleVisibility(user.role);
     document.getElementById('userName').textContent = user.login;
     document.getElementById('userRole').textContent = user.role === 'admin' ? 'Администратор' : 'Пользователь';
     const avatar = document.getElementById('userAvatar');
@@ -1029,6 +1185,7 @@ let propsTarget = null;
 let isPanning2D = false;
 let spacePressed = false;
 let pan2DLast = { x: 0, y: 0 };
+let touchPan2D = null;
 
 /* ============================================================
    Мебель
@@ -1861,8 +2018,23 @@ function drawThreePreview() {
 }
 
 /* ============================================================
-   3D управление и редактирование
+   3D управление (мышь + тач)
    ============================================================ */
+let threeTouchState = null;
+
+function getThreeEventPos(e) {
+    const rect = threeCanvas.getBoundingClientRect();
+    let cx, cy;
+    if (e.touches && e.touches.length) {
+        cx = e.touches[0].clientX; cy = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length) {
+        cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY;
+    } else {
+        cx = e.clientX; cy = e.clientY;
+    }
+    return { mx: cx - rect.left, my: cy - rect.top, clientX: cx, clientY: cy };
+}
+
 threeCanvas.addEventListener('mousedown', (e) => {
     if (viewMode !== '3d') return;
     if (e.shiftKey && e.button === 0 && isAdmin()) {
@@ -1907,6 +2079,136 @@ threeCanvas.addEventListener('mousedown', (e) => {
     e.preventDefault();
 });
 threeCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+threeCanvas.addEventListener('touchstart', (e) => {
+    if (viewMode !== '3d') return;
+    if (e.touches.length === 1) {
+        const pos = getThreeEventPos(e);
+        if (isAdmin()) {
+            const floorPt = screenToFloor(pos.mx, pos.my);
+            if (floorPt && ['wall','room','floor','door','window','stairs','stage','stand','tent'].includes(threeTool)) {
+                threeDrawing = true;
+                threeDrawStart = { x: floorPt.x, y: floorPt.y };
+                threeDrawCurrent = { x: floorPt.x, y: floorPt.y };
+                threeTouchState = { mode: 'draw', startX: pos.clientX, startY: pos.clientY };
+                e.preventDefault();
+                return;
+            }
+        }
+        cam3D.dragging = true;
+        cam3D.lastX = pos.clientX; cam3D.lastY = pos.clientY;
+        threeTouchState = { mode: 'rotate', startX: pos.clientX, startY: pos.clientY };
+        e.preventDefault();
+    } else if (e.touches.length === 2) {
+        cam3D.dragging = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        threeTouchState = { mode: 'pinch', dist: Math.hypot(dx, dy), cx: (e.touches[0].clientX + e.touches[1].clientX) / 2, cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+        e.preventDefault();
+    }
+}, { passive: false });
+
+threeCanvas.addEventListener('touchmove', (e) => {
+    if (viewMode !== '3d' || !threeTouchState) return;
+    if (e.touches.length === 2 && threeTouchState.mode === 'pinch') {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        if (threeTouchState.dist > 0) {
+            const factor = threeTouchState.dist / dist;
+            cam3D.dist = Math.max(200, Math.min(6000, cam3D.dist * factor));
+            threeTouchState.dist = dist;
+            render3D();
+        }
+        e.preventDefault();
+        return;
+    }
+    if (e.touches.length === 1) {
+        const pos = getThreeEventPos(e);
+        if (threeDrawing && threeTouchState.mode === 'draw') {
+            const floorPt = screenToFloor(pos.mx, pos.my);
+            if (floorPt) {
+                threeDrawCurrent = { x: floorPt.x, y: floorPt.y };
+                render3D();
+            }
+            e.preventDefault();
+            return;
+        }
+        if (cam3D.dragging) {
+            const dx = pos.clientX - cam3D.lastX, dy = pos.clientY - cam3D.lastY;
+            cam3D.yaw += dx * 0.01;
+            cam3D.pitch = Math.max(0.15, Math.min(1.45, cam3D.pitch + dy * 0.01));
+            cam3D.lastX = pos.clientX; cam3D.lastY = pos.clientY;
+            render3D();
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
+
+threeCanvas.addEventListener('touchend', async (e) => {
+    if (viewMode !== '3d') return;
+    if (threeDrawing && threeDrawStart && threeDrawCurrent) {
+        threeDrawing = false;
+        const dx = threeDrawCurrent.x - threeDrawStart.x;
+        const dy = threeDrawCurrent.y - threeDrawStart.y;
+        const dist = Math.hypot(dx, dy);
+        const sx = Math.min(threeDrawStart.x, threeDrawStart.x + dx);
+        const sy = Math.min(threeDrawStart.y, threeDrawStart.y + dy);
+        if (threeTool === 'wall' && dist >= 5) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'wall', x1: threeDrawStart.x, y1: threeDrawStart.y, x2: threeDrawCurrent.x, y2: threeDrawCurrent.y,
+                color: wallColor, thickness: wallThickness });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (threeTool === 'room' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'room', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy), color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (threeTool === 'floor' && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'floor', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy), color: wallColor, rotation: 0 });
+            await saveActiveMap();
+        } else if (threeTool === 'stairs' && dist >= 20) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stairs', x1: threeDrawStart.x, y1: threeDrawStart.y, x2: threeDrawCurrent.x, y2: threeDrawCurrent.y,
+                width: 40, steps: STAIRS_STEPS, height3d: STAIRS_STEP_H * STAIRS_STEPS,
+                up: true, color: wallColor });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (threeTool === 'stage' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stage', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: STAGE_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (threeTool === 'stand' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stand', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: STAND_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (threeTool === 'tent' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'tent', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: TENT_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if ((threeTool === 'door' || threeTool === 'window') && dist >= 2) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: threeTool, x1: threeDrawStart.x, y1: threeDrawStart.y, x2: threeDrawCurrent.x, y2: threeDrawCurrent.y });
+            await saveActiveMap(); if (routePath) clearRoute();
+        }
+        threeDrawStart = null; threeDrawCurrent = null;
+        render3D(); renderPointsList(); renderMapsList();
+    }
+    cam3D.dragging = false;
+    cam3D.panning = false;
+    threeTouchState = null;
+});
+
 window.addEventListener('mousemove', (e) => {
     if (viewMode !== '3d') return;
     if (threeDrawing) {
@@ -2004,6 +2306,7 @@ threeCanvas.addEventListener('wheel', (e) => {
 }, { passive: false });
 threeCanvas.addEventListener('click', (e) => {
     if (viewMode !== '3d' || !activeMap) return;
+    if (e.pointerType === 'touch') return;
     const rect = threeCanvas.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
     const floorPt = screenToFloor(mx, my);
@@ -2548,6 +2851,60 @@ function drawPreview() {
     }
     ctx.restore();
 }
+
+/* ============================================================
+   Динамическая подпись точки (не вылезает за край)
+   ============================================================ */
+function drawPointLabelAdaptive(x, y, p) {
+    if (!p.name) return;
+    ctx.font = '600 13px -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    const fullW = ctx.measureText(p.name).width;
+    const padX = 8, h = 22;
+    const gap = 12;
+    const mapRect = getMapBounds();
+    let maxW;
+    if (mapRect) {
+        const leftBound = mapRect.x;
+        const rightBound = mapRect.x + mapRect.w;
+        const rightSpace = (rightBound - x) - gap - padX * 2;
+        const leftSpace = (x - leftBound) - gap - padX * 2;
+        maxW = Math.max(rightSpace, leftSpace);
+        if (maxW < 20) return;
+    } else {
+        maxW = Math.max(cssW - 60, 100);
+    }
+    const boxW = Math.min(fullW + padX * 2, Math.max(maxW + padX * 2, 40));
+    let text = p.name;
+    if (ctx.measureText(text).width + padX * 2 > boxW) {
+        let lo = 0, hi = text.length;
+        while (lo < hi) {
+            const mid = (lo + hi + 1) >> 1;
+            if (ctx.measureText(text.slice(0, mid) + '…').width + padX * 2 <= boxW) lo = mid;
+            else hi = mid - 1;
+        }
+        text = text.slice(0, Math.max(1, lo)) + (lo < p.name.length ? '…' : '');
+    }
+    let bx = x + gap, by = y - h / 2;
+    if (mapRect) {
+        const rightBound = mapRect.x + mapRect.w;
+        if (bx + boxW > rightBound - 4) {
+            bx = x - gap - boxW;
+            if (bx < mapRect.x + 4) {
+                bx = Math.min(rightBound - 4 - boxW, x + gap);
+            }
+        }
+        if (bx < mapRect.x + 4) bx = mapRect.x + 4;
+    } else {
+        if (bx + boxW > cssW - 4) bx = cssW - 4 - boxW;
+        if (bx < 4) bx = 4;
+    }
+    ctx.fillStyle = 'rgba(15,17,21,0.85)';
+    ctx.beginPath(); roundRect(ctx, bx, by, boxW, h, 6); ctx.fill();
+    ctx.fillStyle = '#e6e9ef'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, bx + padX, y + 1);
+    ctx.textBaseline = 'alphabetic';
+}
+
 function drawPointMarker(x, y, p) {
     const hasMedia = (p.photos && p.photos.length) || p.pano;
     const isHovered = popoverPoint === p;
@@ -2568,17 +2925,7 @@ function drawPointMarker(x, y, p) {
         ctx.fillStyle = '#4f8cff'; ctx.fill();
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
     }
-    if (p.name) {
-        ctx.font = '600 13px -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
-        const textW = ctx.measureText(p.name).width;
-        const padX = 8, h = 22;
-        const bx = x + 12, by = y - h / 2;
-        ctx.fillStyle = 'rgba(15,17,21,0.85)';
-        ctx.beginPath(); roundRect(ctx, bx, by, textW + padX * 2, h, 6); ctx.fill();
-        ctx.fillStyle = '#e6e9ef'; ctx.textBaseline = 'middle';
-        ctx.fillText(p.name, bx + padX, y + 1);
-        ctx.textBaseline = 'alphabetic';
-    }
+    drawPointLabelAdaptive(x, y, p);
 }
 
 /* ============================================================
@@ -3481,11 +3828,15 @@ cancelTextBtn.addEventListener('click', closeTextEditor);
 textEditorModal.addEventListener('click', (e) => { if (e.target === textEditorModal) closeTextEditor(); });
 
 /* ============================================================
-   Мышь (2D) с камерой
+   Мышь / тач (2D)
    ============================================================ */
 function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
-    return screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let cx, cy;
+    if (e.touches && e.touches.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+    else if (e.changedTouches && e.changedTouches.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+    else { cx = e.clientX; cy = e.clientY; }
+    return screenToWorld(cx - rect.left, cy - rect.top);
 }
 function snapPoint(p) { const step = 10; return { x: Math.round(p.x / step) * step, y: Math.round(p.y / step) * step }; }
 function isSchemaActive() { return activeMap && activeMap.type === 'schema'; }
@@ -3503,6 +3854,190 @@ canvas.addEventListener('wheel', (e) => {
     view2D.offsetY = my - before.y * view2D.scale;
     redrawCanvas();
 }, { passive: false });
+
+/* --- touch 2D --- */
+let touchState2D = null;
+
+canvas.addEventListener('touchstart', (e) => {
+    if (!activeMap) return;
+    if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchState2D = {
+            mode: 'pinch',
+            dist: Math.hypot(dx, dy),
+            cx: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+            cy: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+            worldAtStart: null
+        };
+        const rect = canvas.getBoundingClientRect();
+        touchState2D.worldAtStart = screenToWorld(touchState2D.cx - rect.left, touchState2D.cy - rect.top);
+        e.preventDefault();
+        return;
+    }
+    if (e.touches.length === 1) {
+        const pos = getCanvasPos(e);
+        if (isAdmin() && (obstacleMode || isDrawModeActive()) && currentTool !== 'select' && currentTool !== 'point' && currentTool !== 'text' && currentTool !== 'furniture' && !routeMode) {
+            if (obstacleMode) {
+                if (obstacleTool === 'erase') {
+                } else {
+                    obstacleDrawing = true; obstacleStart = { x: pos.x, y: pos.y }; obstacleCurrent = { x: pos.x, y: pos.y };
+                    touchState2D = { mode: 'draw-obstacle' };
+                    e.preventDefault(); return;
+                }
+            } else if (['floor','wall','room','door','window','arrow','measure','stairs','stage','stand','tent'].includes(currentTool)) {
+                const sp = snapPoint(pos);
+                drawing = true; drawStart = sp; drawCurrent = sp;
+                drawInfoText.textContent = 'Тяните, чтобы задать размер';
+                drawInfo.classList.add('visible');
+                touchState2D = { mode: 'draw' };
+                e.preventDefault(); return;
+            }
+        }
+        touchState2D = { mode: 'pan', lastX: e.touches[0].clientX, lastY: e.touches[0].clientY };
+        e.preventDefault();
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    if (!activeMap || !touchState2D) return;
+    if (e.touches.length === 2 && touchState2D.mode === 'pinch') {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        if (touchState2D.dist > 0) {
+            const factor = dist / touchState2D.dist;
+            const rect = canvas.getBoundingClientRect();
+            const mx = touchState2D.cx - rect.left, my = touchState2D.cy - rect.top;
+            const before = screenToWorld(mx, my);
+            view2D.scale = Math.max(0.2, Math.min(4, view2D.scale * factor));
+            view2D.offsetX = mx - before.x * view2D.scale;
+            view2D.offsetY = my - before.y * view2D.scale;
+            touchState2D.dist = dist;
+            redrawCanvas();
+        }
+        e.preventDefault();
+        return;
+    }
+    if (e.touches.length === 1) {
+        const pos = getCanvasPos(e);
+        if (touchState2D.mode === 'draw-obstacle' && obstacleDrawing) {
+            obstacleCurrent = { x: pos.x, y: pos.y };
+            redrawCanvas();
+            e.preventDefault(); return;
+        }
+        if (touchState2D.mode === 'draw' && drawing) {
+            drawCurrent = snapPoint(pos);
+            redrawCanvas();
+            const dx = Math.round(drawCurrent.x - drawStart.x), dy = Math.round(drawCurrent.y - drawStart.y);
+            const len = Math.hypot(dx, dy);
+            drawInfoText.textContent = (currentTool === 'room' || currentTool === 'floor' || currentTool === 'stage' || currentTool === 'stand' || currentTool === 'tent')
+                ? `${Math.abs(dx)} × ${Math.abs(dy)} px (${fmtMeters(Math.abs(dx))} × ${fmtMeters(Math.abs(dy))})`
+                : `${Math.round(len)} px (${fmtMeters(len)})`;
+            e.preventDefault(); return;
+        }
+        if (touchState2D.mode === 'pan') {
+            const dx = e.touches[0].clientX - touchState2D.lastX;
+            const dy = e.touches[0].clientY - touchState2D.lastY;
+            view2D.offsetX += dx; view2D.offsetY += dy;
+            touchState2D.lastX = e.touches[0].clientX; touchState2D.lastY = e.touches[0].clientY;
+            redrawCanvas();
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', async (e) => {
+    if (!activeMap) return;
+    const wasMode = touchState2D ? touchState2D.mode : null;
+    touchState2D = null;
+    if (wasMode === 'draw-obstacle' && obstacleDrawing) {
+        obstacleDrawing = false;
+        const dx = obstacleCurrent.x - obstacleStart.x, dy = obstacleCurrent.y - obstacleStart.y;
+        const dist = Math.hypot(dx, dy);
+        if (obstacleTool === 'rect' && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+            obstacles.push({ id: 'ob_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'rect', x1: obstacleStart.x, y1: obstacleStart.y, x2: obstacleCurrent.x, y2: obstacleCurrent.y });
+            await saveActiveMap(); updateObstaclesBadge(); if (routePath) clearRoute();
+        } else if (obstacleTool === 'line' && dist >= 10) {
+            obstacles.push({ id: 'ob_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'line', x1: obstacleStart.x, y1: obstacleStart.y, x2: obstacleCurrent.x, y2: obstacleCurrent.y,
+                thickness: wallThickness || 8 });
+            await saveActiveMap(); updateObstaclesBadge(); if (routePath) clearRoute();
+        }
+        obstacleStart = null; obstacleCurrent = null;
+        redrawCanvas(); if (viewMode === '3d') render3D();
+        return;
+    }
+    if (wasMode === 'draw' && drawing) {
+        drawing = false; drawInfo.classList.remove('visible');
+        const dx = drawCurrent.x - drawStart.x, dy = drawCurrent.y - drawStart.y;
+        const dist = Math.hypot(dx, dy);
+        const sx = Math.min(drawStart.x, drawStart.x + dx);
+        const sy = Math.min(drawStart.y, drawStart.y + dy);
+        if (currentTool === 'floor' && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'floor', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy), color: wallColor, rotation: 0 });
+            await saveActiveMap();
+        } else if (currentTool === 'wall' && dist >= 5) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'wall', x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y,
+                color: wallColor, thickness: wallThickness });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'room' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'room', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy), color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'stairs' && dist >= 20) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stairs', x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y,
+                width: 40, steps: STAIRS_STEPS, height3d: STAIRS_STEP_H * STAIRS_STEPS,
+                up: true, color: wallColor });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'stage' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stage', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: STAGE_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'stand' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'stand', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: STAND_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'tent' && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'tent', x: sx, y: sy, w: Math.abs(dx), h: Math.abs(dy),
+                h3d: TENT_H, color: wallColor, rotation: 0 });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if ((currentTool === 'door' || currentTool === 'window') && dist >= 2) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: currentTool, x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y });
+            await saveActiveMap(); if (routePath) clearRoute();
+        } else if (currentTool === 'arrow' && dist >= 10) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'arrow', x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y,
+                color: '#ffb84d' });
+            await saveActiveMap();
+        } else if (currentTool === 'measure' && dist >= 10) {
+            pushUndo();
+            elements.push({ id: 'el_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                type: 'measure', x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y,
+                label: fmtMeters(dist), color: '#3ddc97' });
+            await saveActiveMap();
+        }
+        drawStart = null; drawCurrent = null;
+        redrawCanvas(); if (viewMode === '3d') render3D();
+    }
+});
 
 canvas.addEventListener('mousedown', (e) => {
     if (!activeMap) return;
@@ -3721,6 +4256,7 @@ canvas.addEventListener('mouseup', async (e) => {
 });
 canvas.addEventListener('click', (e) => {
     if (!activeMap) return;
+    if (e.pointerType === 'touch') return;
     handle2DClick(getCanvasPos(e));
 });
 function handle2DClick(pos) {
@@ -4045,7 +4581,7 @@ function renderPanoPreview() {
     wrap.innerHTML = `<img src="${editingPointData.pano}" alt=""><div class="pano-badge">360°</div>`;
     const removeBtn = document.createElement('button');
     removeBtn.className = 'remove'; removeBtn.textContent = '×';
-    removeBtn.style.cssText = 'position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:none;cursor:pointer;';
+    removeBtn.style.cssText = 'position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:none;cursor:pointer;font-size:16px;';
     removeBtn.addEventListener('click', () => { editingPointData.pano = null; renderPanoPreview(); });
     wrap.appendChild(removeBtn); panoPreviewWrap.appendChild(wrap);
 }
@@ -4151,6 +4687,7 @@ function positionPopover(anchorX, anchorY) {
         const absX = wrapperRect.left + wx.x, absY = wrapperRect.top + wx.y;
         let left = absX + margin, top = absY - ph / 2;
         if (left + pw > window.innerWidth - margin) left = absX - pw - margin;
+        if (left < margin) left = margin;
         if (top < margin) top = margin;
         if (top + ph > window.innerHeight - margin) top = window.innerHeight - ph - margin;
         pointPopover.style.left = left + 'px'; pointPopover.style.top = top + 'px';
@@ -4241,6 +4778,23 @@ window.addEventListener('mousemove', (e) => {
     renderPanoFrame();
 });
 window.addEventListener('mouseup', () => { panoState.dragging = false; });
+let panoTouch = null;
+panoCanvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        panoTouch = { lastX: e.touches[0].clientX, lastY: e.touches[0].clientY };
+    }
+}, { passive: true });
+panoCanvas.addEventListener('touchmove', (e) => {
+    if (!panoTouch || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - panoTouch.lastX;
+    const dy = e.touches[0].clientY - panoTouch.lastY;
+    panoTouch.lastX = e.touches[0].clientX; panoTouch.lastY = e.touches[0].clientY;
+    panoState.yaw -= dx / window.innerWidth * 2;
+    panoState.pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, panoState.pitch + dy / window.innerHeight * 1.5));
+    renderPanoFrame();
+    e.preventDefault();
+}, { passive: false });
+panoCanvas.addEventListener('touchend', () => { panoTouch = null; });
 window.addEventListener('resize', () => { if (panoViewer.classList.contains('open')) { resizePanoCanvas(); renderPanoFrame(); } });
 
 /* ============================================================
@@ -4345,7 +4899,7 @@ confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) c
    Init
    ============================================================ */
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
 
 async function loadSettings() {
     try {
@@ -4386,6 +4940,10 @@ window.addEventListener('load', async () => {
         console.error('Ошибка инициализации', err);
         alert('Не удалось инициализировать приложение.');
     }
+});
+
+document.addEventListener('gesturestart', (e) => {
+    if (!wrapper.contains(e.target)) e.preventDefault();
 });
 </script>
 </body>
